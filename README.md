@@ -27,7 +27,7 @@ This project automates the **deployment and testing of a PostgreSQL High Availab
 ## Project Structure
 
 ```
-postgresql-ha-setup/
+postansible/
 ├── Dockerfile                     # Dockerfile for deployment and testing
 ├── run.sh                         # Main script to deploy and test the cluster
 ├── ansible/                       # Ansible-related files
