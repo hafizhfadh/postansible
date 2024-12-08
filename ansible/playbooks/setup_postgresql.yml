@@ -1,0 +1,123 @@
+- name: Percona PostgreSQL HA Setup
+  hosts: all
+  become: true
+  tasks:
+    # Step 1: Install Percona PostgreSQL
+    - name: Add Percona APT repository
+      apt_key:
+        url: https://repo.percona.com/apt/percona-release_latest.gpg
+        state: present
+
+    - name: Install Percona repository package
+      apt:
+        name: percona-release
+        state: present
+        update_cache: yes
+
+    - name: Enable Percona PostgreSQL repository
+      command: percona-release enable ppdg-16
+      args:
+        creates: /etc/apt/sources.list.d/percona-postgresql.list
+
+    - name: Install Percona PostgreSQL
+      apt:
+        name:
+          - percona-postgresql-16
+          - percona-postgresql-client-16
+        state: present
+        update_cache: yes
+
+    - name: Install Percona PostgreSQL Extensions
+      apt:
+        name:
+          - percona-pg-stat-monitor-16
+          - percona-pg-repack-16
+        state: present
+
+    - name: Initialize Percona PostgreSQL data directory
+      command: /usr/pgsql-16/bin/postgresql-16-setup initdb
+      args:
+        creates: /var/lib/pgsql/16/data
+
+    - name: Start and enable PostgreSQL service
+      systemd:
+        name: postgresql
+        state: started
+        enabled: true
+
+    # Step 2: Install Etcd
+    - name: Install Etcd
+      apt:
+        name: etcd
+        state: present
+
+    - name: Configure Etcd
+      copy:
+        dest: /etc/default/etcd
+        content: |
+          ETCD_NAME="{{ inventory_hostname }}"
+          ETCD_LISTEN_PEER_URLS="http://{{ ansible_host }}:2380"
+          ETCD_LISTEN_CLIENT_URLS="http://0.0.0.0:2379"
+          ETCD_INITIAL_ADVERTISE_PEER_URLS="http://{{ ansible_host }}:2380"
+          ETCD_INITIAL_CLUSTER="node1=http://172.28.0.10:2380,node2=http://172.28.0.11:2380,node3=http://172.28.0.12:2380"
+          ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-01"
+          ETCD_INITIAL_CLUSTER_STATE="new"
+          ETCD_ADVERTISE_CLIENT_URLS="http://{{ ansible_host }}:2379"
+
+    - name: Start and enable Etcd
+      systemd:
+        name: etcd
+        state: started
+        enabled: true
+
+    # Step 3: Install Patroni
+    - name: Install Patroni
+      apt:
+        name: patroni
+        state: present
+
+    - name: Configure Patroni
+      template:
+        src: templates/patroni.yml.j2
+        dest: /etc/patroni.yml
+
+    - name: Start and enable Patroni
+      systemd:
+        name: patroni
+        state: started
+        enabled: true
+
+    # Step 4: Install Pgpool-II
+    - name: Install Pgpool-II
+      apt:
+        name: pgpool2
+        state: present
+
+    - name: Configure Pgpool-II
+      template:
+        src: templates/pgpool.conf.j2
+        dest: /etc/pgpool2/pgpool.conf
+
+    - name: Start and enable Pgpool-II
+      systemd:
+        name: pgpool2
+        state: started
+        enabled: true
+
+    # Step 5: Enable PostgreSQL Extensions
+    - name: Enable `pg_stat_monitor` extension
+      command: psql -U postgres -c "CREATE EXTENSION IF NOT EXISTS pg_stat_monitor"
+      args:
+        creates: /var/lib/pgsql/16/data/postgresql.conf
+
+    - name: Enable `pg_repack` extension
+      command: psql -U postgres -c "CREATE EXTENSION IF NOT EXISTS pg_repack"
+
+    # Step 6: Validate Services
+    - name: Check Patroni status
+      command: curl -s http://localhost:8008/cluster
+      register: patroni_status
+
+    - name: Debug Patroni status
+      debug:
+        msg: "{{ patroni_status.stdout }}"
