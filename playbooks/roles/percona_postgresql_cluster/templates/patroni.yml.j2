@@ -1,0 +1,67 @@
+scope: "{{ cluster_name }}"
+namespace: /service/
+name: "{{ inventory_hostname }}"
+
+restapi:
+  listen: 0.0.0.0:8008
+  connect_address: "{{ ansible_host }}:8008"
+
+etcd:
+  hosts: 
+    - http://172.28.0.20:2379
+    - http://172.28.0.21:2379
+    - http://172.28.0.22:2379
+  protocol_version: 3
+
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+    synchronous_mode: false
+    postgresql:
+      parameters:
+        wal_level: replica
+        hot_standby: "on"
+        max_connections: 100
+        max_locks_per_transaction: 64
+        max_prepared_transactions: 0
+        track_commit_timestamp: "off"
+        shared_preload_libraries: "{{ extensions | join(', ') }}"
+      use_pg_rewind: true
+  initdb:
+    - encoding: UTF8
+    - locale: en_US.UTF-8
+  users:
+    postgres:
+      password: postgres_password
+      options:
+        - superuser
+        - createdb
+    replicator:
+      password: replication_password
+      options:
+        - replication
+
+postgresql:
+  listen: 0.0.0.0:5432
+  connect_address: "{{ ansible_host }}:5432"
+  data_dir: /var/lib/postgresql/{{ postgresql_version }}/data
+  bin_dir: /usr/lib/postgresql/{{ postgresql_version }}/bin
+  authentication:
+    superuser:
+      username: postgres
+      password: postgres_password
+    replication:
+      username: replicator
+      password: replication_password
+  parameters:
+    archive_mode: "on"
+    archive_command: "cp %p /var/lib/postgresql/{{ postgresql_version }}/archive/%f"
+    archive_timeout: 60
+    max_wal_senders: 10
+    wal_keep_segments: 8
+    max_replication_slots: 10
+    hot_standby: "on"
+`

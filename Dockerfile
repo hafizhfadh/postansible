@@ -9,8 +9,5 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /workspace
 COPY . /workspace
 
-# Ensure scripts are executable
-RUN chmod +x /workspace/scripts/*.sh /workspace/run.sh
-
-# Default command
-CMD ["/bin/bash"]
+# Automatically run the playbook when the container starts
+CMD ["bash", "-c", "/workspace/run.sh"]

@@ -1,0 +1,5 @@
+- name: Set up Percona PostgreSQL Cluster
+  hosts: all
+  become: true
+  roles:
+    - percona_postgresql_cluster

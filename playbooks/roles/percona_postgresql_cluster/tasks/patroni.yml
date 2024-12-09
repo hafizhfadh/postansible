@@ -1,0 +1,12 @@
+- name: Configure Patroni
+  template:
+    src: patroni.yml.j2
+    dest: /etc/patroni.yml
+  notify:
+    - Restart Patroni
+
+- name: Enable and start Patroni service
+  systemd:
+    name: patroni
+    enabled: true
+    state: started

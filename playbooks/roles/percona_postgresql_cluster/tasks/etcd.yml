@@ -1,0 +1,13 @@
+- name: Deploy etcd configuration
+  template:
+    src: etcd.conf.yaml.j2
+    dest: /etc/etcd/etcd.conf.yaml
+    owner: etcd
+    group: etcd
+    mode: '0644'
+
+- name: Restart etcd service
+  systemd:
+    name: etcd
+    state: restarted
+    enabled: true

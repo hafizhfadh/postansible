@@ -1,0 +1,11 @@
+ETCD_LISTEN_PEER_URLS="http://{{ ansible_host }}:2380"
+ETCD_LISTEN_CLIENT_URLS="http://0.0.0.0:2379"
+ETCD_INITIAL_ADVERTISE_PEER_URLS="http://{{ ansible_host }}:2380"
+ETCD_ADVERTISE_CLIENT_URLS="http://{{ ansible_host }}:2379"
+ETCD_INITIAL_CLUSTER="{{ etcd_cluster }}"
+ETCD_INITIAL_CLUSTER_STATE="new"
+ETCD_INITIAL_CLUSTER_TOKEN="{{ cluster_name }}"
+ETCD_CERT_FILE=/etc/etcd/etcd.crt
+ETCD_KEY_FILE=/etc/etcd/etcd.key
+ETCD_TRUSTED_CA_FILE=/etc/etcd/ca.crt
+ETCD_DATA_DIR="/var/lib/etcd"

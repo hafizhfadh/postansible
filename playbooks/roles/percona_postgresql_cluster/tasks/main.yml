@@ -1,0 +1,31 @@
+- name: Add Percona APT Repository
+  apt:
+    deb: "{{ percona_repo_url }}"
+    update_cache: true
+
+- name: Setup Percona PostgreSQL {{ postgresql_version }} Repository
+  command: sudo percona-release setup ppg-{{ postgresql_version }}
+  become: true
+
+- name: Install Percona PostgreSQL {{ postgresql_version }}, etcd, Patroni, Pgpool-II, and extensions
+  apt:
+    name:
+      - percona-postgresql-{{ postgresql_version }}
+      - percona-postgresql-{{ postgresql_version }}-repack
+      - percona-postgresql-{{ postgresql_version }}-pgaudit
+      - percona-pgbackrest
+      - percona-pg-stat-monitor{{ postgresql_version }}
+      - percona-pgaudit{{ postgresql_version }}-set-user
+      - etcd
+      - etcd-server
+      - etcd-client
+      - percona-pgbadger
+      - percona-pgpool2
+      - percona-patroni
+    update_cache: true
+  become: true
+
+- include_tasks: etcd.yml
+- include_tasks: patroni.yml
+- include_tasks: pgpool2.yml
+- include_tasks: extensions.yml

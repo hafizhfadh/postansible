@@ -1,0 +1,14 @@
+- name: Restart etcd
+  systemd:
+    name: etcd
+    state: restarted
+
+- name: Restart Patroni
+  systemd:
+    name: patroni
+    state: restarted
+
+- name: Restart Pgpool-II
+  systemd:
+    name: pgpool2
+    state: restarted

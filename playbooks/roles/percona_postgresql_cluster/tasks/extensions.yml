@@ -1,0 +1,7 @@
+- name: Enable pg_stat_monitor and other extensions
+  shell: |
+    PGPASSWORD={{ansible_password}} psql -U ansible -d your_database -c "CREATE EXTENSION IF NOT EXISTS {{ item }};"
+  loop: "{{ extensions }}"
+  environment:
+    PGHOST: /var/run/postgresql
+    PGPORT: "5432"

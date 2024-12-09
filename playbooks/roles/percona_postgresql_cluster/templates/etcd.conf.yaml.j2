@@ -1,0 +1,9 @@
+name: "{{ inventory_hostname }}"
+data-dir: /var/lib/etcd
+initial-cluster-token: postgresql_cluster_token
+initial-cluster: "{{ etcd_cluster }}"
+initial-cluster-state: new
+listen-peer-urls: http://{{ ansible_host }}:2380
+initial-advertise-peer-urls: http://{{ ansible_host }}:2380
+listen-client-urls: http://{{ ansible_host }}:2379,http://127.0.0.1:2379
+advertise-client-urls: http://{{ ansible_host }}:2379
